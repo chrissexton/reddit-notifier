@@ -16,13 +16,15 @@ const pushoverURL = "https://api.pushover.net/1/messages.json"
 const envToken = "PUSHOVER_TOKEN"
 const envUser = "PUSHOVER_USER"
 const envURL = "MODQ_JSON"
-const envData = "reddit_data.json"
+const envData = "REDDIT_DATA"
+
+const defaultData = "reddit_data.json"
 
 var (
 	pushoverToken = os.Getenv(envToken)
 	pushoverUser  = os.Getenv(envUser)
 	modQURL       = os.Getenv(envURL)
-	dataFile = os.Getenv(envData)
+	dataFile      = os.Getenv(envData)
 )
 
 type RedditNotifier int
@@ -119,16 +121,27 @@ func (n RedditNotifier) checkEnv() error {
 	if modQURL == "" {
 		return fmt.Errorf("must provide a reddit Mod Queue URL in %s", envURL)
 	}
+	if dataFile == "" {
+		dataFile = defaultData
+	}
 	return nil
 }
 
 func (n RedditNotifier) Execute() error {
-	if err := n.checkEnv(); err != nil { return err }
+	if err := n.checkEnv(); err != nil {
+		return err
+	}
 	seen, err := n.readData()
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	modQ, err := n.getModQ()
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	seen, err = n.sendPush(seen, modQ)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	return n.saveData(seen)
 }
