@@ -1,0 +1,17 @@
+= Reddit Notifier
+
+This program sends https://pushover.net[Pushover] notifications for every moderation queue item seen on https://reddit.com[Reddit].
+
+== Setup
+
+Set the following environment variables:
+
+PUSHOVER_TOKEN:: Found in the app settings for a new Pushover app
+
+PUSHOVER_USER:: Found on your user page for Pushover after logging in
+
+MODQ_JSON:: Found on the https://old.reddit.com/prefs/feeds/[RSS Feeds] tab of the Old Reddit account preferences.
+
+== Running
+
+This program is designed to store any queue items seen in a JSON file so that it may be run as a Cron schedule.
