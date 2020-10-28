@@ -17,13 +17,13 @@ const pushoverURL = "https://api.pushover.net/1/messages.json"
 const envToken = "PUSHOVER_TOKEN"
 const envUser = "PUSHOVER_USER"
 const envURL = "MODQ_JSON"
+const envData = "reddit_data.json"
 
 var (
 	pushoverToken = os.Getenv(envToken)
 	pushoverUser  = os.Getenv(envUser)
 	modQURL       = os.Getenv(envURL)
-
-	dataFile = flag.String("data", "data.json", "data file")
+	dataFile = os.Getenv(envData)
 )
 
 type RedditNotifier int
@@ -124,8 +124,6 @@ func (n RedditNotifier) checkEnv() error {
 }
 
 func (n RedditNotifier) Execute() error {
-	flag.Parse()
-
 	if err := n.checkEnv(); err != nil { return err }
 	seen, err := n.readData()
 	if err != nil { return err }
