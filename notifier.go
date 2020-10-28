@@ -2,7 +2,6 @@ package redditnotifier
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"io/ioutil"
@@ -34,9 +33,9 @@ func New() RedditNotifier {
 
 func (n RedditNotifier) readData() (map[string]bool, error) {
 	seen := map[string]bool{}
-	_, err := os.Stat(*dataFile)
+	_, err := os.Stat(dataFile)
 	if err == nil {
-		seenData, err := ioutil.ReadFile(*dataFile)
+		seenData, err := ioutil.ReadFile(dataFile)
 		if err != nil {
 			return seen, err
 		}
@@ -74,7 +73,7 @@ func (n RedditNotifier) getModQ() (ModResp, error) {
 
 func (n RedditNotifier) saveData(seen map[string]bool) error {
 	seenData, _ := json.Marshal(seen)
-	return ioutil.WriteFile(*dataFile, seenData, 0666)
+	return ioutil.WriteFile(dataFile, seenData, 0666)
 }
 
 func (n RedditNotifier) sendPush(seen map[string]bool, modQ ModResp) (map[string]bool, error) {
