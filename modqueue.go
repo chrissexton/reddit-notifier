@@ -1,4 +1,4 @@
-package main
+package redditnotifier
 
 type ModResp struct {
 	Data struct {

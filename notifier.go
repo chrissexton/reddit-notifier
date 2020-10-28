@@ -1,4 +1,4 @@
-package main
+package redditnotifier
 
 import (
 	"encoding/json"
@@ -26,7 +26,13 @@ var (
 	dataFile = flag.String("data", "data.json", "data file")
 )
 
-func readData() (map[string]bool, error) {
+type RedditNotifier int
+
+func New() RedditNotifier {
+	return RedditNotifier(0)
+}
+
+func (n RedditNotifier) readData() (map[string]bool, error) {
 	seen := map[string]bool{}
 	_, err := os.Stat(*dataFile)
 	if err == nil {
@@ -38,8 +44,6 @@ func readData() (map[string]bool, error) {
 		if err != nil {
 			return seen, err
 		}
-	} else {
-		return seen, err
 	}
 
 	log.Debug().Interface("seen", seen).Msgf("data")
@@ -47,7 +51,7 @@ func readData() (map[string]bool, error) {
 	return seen, nil
 }
 
-func getModQ() (ModResp, error) {
+func (n RedditNotifier) getModQ() (ModResp, error) {
 	req, err := http.NewRequest(http.MethodGet, modQURL, nil)
 	modQ := ModResp{}
 
@@ -68,12 +72,12 @@ func getModQ() (ModResp, error) {
 	return modQ, nil
 }
 
-func saveData(seen map[string]bool) error {
+func (n RedditNotifier) saveData(seen map[string]bool) error {
 	seenData, _ := json.Marshal(seen)
 	return ioutil.WriteFile(*dataFile, seenData, 0666)
 }
 
-func sendPush(seen map[string]bool, modQ ModResp) (map[string]bool, error) {
+func (n RedditNotifier) sendPush(seen map[string]bool, modQ ModResp) (map[string]bool, error) {
 	for _, item := range modQ.Data.Children {
 		if seen[item.Data.ID] {
 			log.Debug().Msgf("Already pushed %s, skipping.", item.Data.ID)
@@ -106,13 +110,7 @@ func sendPush(seen map[string]bool, modQ ModResp) (map[string]bool, error) {
 	return seen, nil
 }
 
-func fatalErr(err error) {
-	if err != nil {
-		log.Fatal().Err(err).Msgf("error")
-	}
-}
-
-func checkEnv() error {
+func (n RedditNotifier) checkEnv() error {
 	if pushoverUser == "" {
 		return fmt.Errorf("must provide a pushover user ID in %s", envUser)
 	}
@@ -125,17 +123,15 @@ func checkEnv() error {
 	return nil
 }
 
-func main() {
+func (n RedditNotifier) Execute() error {
 	flag.Parse()
 
-	err := checkEnv()
-	fatalErr(err)
-	seen, err := readData()
-	fatalErr(err)
-	modQ, err := getModQ()
-	fatalErr(err)
-	seen, err = sendPush(seen, modQ)
-	fatalErr(err)
-	err = saveData(seen)
-	fatalErr(err)
+	if err := n.checkEnv(); err != nil { return err }
+	seen, err := n.readData()
+	if err != nil { return err }
+	modQ, err := n.getModQ()
+	if err != nil { return err }
+	seen, err = n.sendPush(seen, modQ)
+	if err != nil { return err }
+	return n.saveData(seen)
 }
